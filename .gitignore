@@ -1,0 +1,8 @@
+ios/
+android/
+IOSClient1.plist
+node_modules/
+ExpoClient1.json
+IOSClient1.plist
+main_service_account.json
+drive_service_account.json
