@@ -104,7 +104,7 @@ Contributions, issues, and feature requests are welcome! Please check the issues
 
 License
 
-This project is licensed under the MIT License.
+Apache License 2.0
 
 ⸻
 
