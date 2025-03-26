@@ -16,6 +16,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "@google-cloud/vision": "4.1.0",
+    "@sendgrid/mail": "^8.1.4",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "googleapis": "^144.0.0",
