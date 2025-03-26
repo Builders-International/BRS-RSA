@@ -43,6 +43,7 @@ OPENAI_API_KEY=your-openai-api-key
 ROOT_FOLDER_ID=your-root-folder-id
 SHARED_DRIVE_ID=your-shared-drive-id
 NODE_ENV=production
+SENDGRID_API_KEY=your-sendgrid-api-key
 ```
 Note: Ensure that the credentials file is deployed to the correct location in your AWS Elastic Beanstalk environment.
 
