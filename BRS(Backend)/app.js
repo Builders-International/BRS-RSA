@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////
-// app.js - BRS Node/Express Project (CommonJS version)
+// app.js - BRS Node/Express Project (ES Modules syntax)
 /////////////////////////////////////////////////////////
 
 // 1. Load environment variables
@@ -13,6 +13,15 @@ import multer from 'multer';
 import { google } from 'googleapis';
 import vision from '@google-cloud/vision';
 import OpenAI from 'openai';
+import { Readable } from 'stream';
+import './emailScheduler.js'
+
+function bufferToStream(buffer) {
+  const stream = new Readable();
+  stream.push(buffer);
+  stream.push(null);
+  return stream;
+}
 
 // 3. Express Setup
 const app = express();
@@ -24,19 +33,17 @@ const port = process.env.PORT || 3000;
 const upload = multer({ storage: multer.memoryStorage() });
 
 // 5. Google Auth Setup for Drive
-//    (Make sure process.env.GOOGLE_APPLICATION_CREDENTIALS
-//     is set to the correct path in your EB environment)
+//    (Ensure process.env.GOOGLE_APPLICATION_CREDENTIALS is set correctly in your EB environment)
 const auth = new google.auth.GoogleAuth({
   keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
   scopes: [
     'https://www.googleapis.com/auth/cloud-platform',
-    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/drive'
   ],
 });
 const driveService = google.drive({ version: 'v3', auth });
 
 // 6. Create a Vision client using @google-cloud/vision
-//    (Again, ensure your EB environment can see the creds file)
 const visionClient = new vision.ImageAnnotatorClient({
   keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
 });
@@ -62,7 +69,7 @@ async function categorizeReceiptText(text) {
   const prompt = `Categorize this receipt (Meals/Travel/Events/Misc/Software):\n${text}`;
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4', // or 'gpt-4-turbo' if you have access
+      model: 'gpt-4', // or 'gpt-3.5-turbo'
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 10,
       temperature: 0.3,
@@ -86,6 +93,7 @@ async function getFolderId(folderName, parentId) {
       supportsAllDrives: true,
       includeItemsFromAllDrives: true,
       driveId: process.env.SHARED_DRIVE_ID,
+      corpora: 'drive', // ADDED corpora: 'drive'
     });
 
     if (!res.data.files?.length) {
@@ -144,7 +152,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     const { data } = await driveService.files.create({
       media: {
         mimeType: req.file.mimetype,
-        body: Buffer.from(req.file.buffer),
+        body: bufferToStream(req.file.buffer), // USE RAW BUFFER AS STREAM
       },
       resource: {
         name: req.file.originalname || `receipt-${Date.now()}`,
@@ -152,6 +160,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
       },
       fields: 'id, webViewLink',
       supportsAllDrives: true,
+      driveId: process.env.SHARED_DRIVE_ID, // specify the shared drive ID
     });
 
     // Return success response
@@ -160,7 +169,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
       fileId: data.id,
       fileUrl: data.webViewLink,
       category,
-      text: text.substring(0, 50) + '...', 
+      text: text.substring(0, 50) + '...',
     });
   } catch (err) {
     console.error('Upload Error:', err);
@@ -171,7 +180,12 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   }
 });
 
-// 12. Start Server
+// 12. Health Check Route (Optional)
+app.get('/', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// 13. Start Server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
