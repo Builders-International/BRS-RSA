@@ -2,7 +2,7 @@
   "expo": {
     "name": "ReceiptSorterApp",
     "slug": "ReceiptSorterApp",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "scheme": "com.egod21.ReceiptSorterApp",
 "plugins": [
   [
@@ -22,7 +22,7 @@
     "icon": "./assets/icon.png",
     "ios": {
       "bundleIdentifier": "com.egod21.ReceiptSorterApp",
-      "buildNumber": "3",
+      "buildNumber": "2",
       "icon": "./assets/icon.png",
       "newArchitecture": false,
       "infoPlist": {
