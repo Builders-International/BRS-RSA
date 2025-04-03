@@ -1,15 +1,15 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera';  // Latest expo-camera import
+import { CameraView, useCameraPermissions } from 'expo-camera';
 
-export default function CameraScreen() {
+export default function CameraScreen({ onReceiptCaptured }) {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
 
-  // If permissions are still loading or not yet determined
+  // If permissions are still loading or not yet determined, show a loader
   if (!permission) {
-    return <View />; // You could show a loader here
+    return <View />;
   }
   // If permission is denied, show a message with a button to request again
   if (!permission.granted) {
@@ -25,35 +25,24 @@ export default function CameraScreen() {
     );
   }
 
- // When user taps the screen, take a photo and send it to the endpoint.
- const takePhoto = async () => {
-  if (cameraRef.current && isCameraReady) {
-    try {
-      // Capture photo with base64 option so we can send the image data as a string.
-      const photo = await cameraRef.current.takePictureAsync({ base64: true });
-      console.log('Photo captured:', photo.uri);
-
-      // Send the captured image (base64 string) to your endpoint.
-      const response = await fetch('http://brsfinanceportal-env.eba-bueve3pm.us-east-1.elasticbeanstalk.com/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          image: photo.base64
-        })
-      });
-      const result = await response.json();
-      console.log('Upload result:', result);
-    } catch (error) {
-      console.error('Error taking photo:', error);
+  // When user taps the screen, take a photo and pass the photo URI to the parent's callback.
+  const takePhoto = async () => {
+    if (cameraRef.current && isCameraReady) {
+      try {
+        // Capture photo without base64 option for better performance.
+        const photo = await cameraRef.current.takePictureAsync({ quality: 0.5 });
+        console.log('Photo captured:', photo.uri);
+        if (onReceiptCaptured) {
+          onReceiptCaptured(photo.uri);
+        }
+      } catch (error) {
+        console.error('Error taking photo:', error);
+      }
     }
-  }
-};
+  };
 
   return (
     <View style={styles.container}>
-      {/* Camera preview */}
       <CameraView
         ref={cameraRef}
         style={styles.camera}
