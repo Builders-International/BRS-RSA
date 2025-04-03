@@ -14,7 +14,8 @@ import { google } from 'googleapis';
 import vision from '@google-cloud/vision';
 import OpenAI from 'openai';
 import { Readable } from 'stream';
-import './emailScheduler.js'
+import './emailScheduler.js';
+import accountNumbers from './accountNumbers.json' assert { type: 'json' };
 
 function bufferToStream(buffer) {
   const stream = new Readable();
@@ -130,15 +131,19 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     const category = await categorizeReceiptText(text);
     console.log(`Detected category: ${category}`);
 
-    // Build folder structure
+    // Build folder structure with additional month level:
+    // shared drive -> user -> year -> quarter -> month -> category
     const rootId = process.env.ROOT_FOLDER_ID; // top-level shared drive folder
-    const year = new Date().getFullYear().toString();
-    const quarter = Math.ceil((new Date().getMonth() + 1) / 3);
-
+    const now = new Date();
+    const year = now.getFullYear().toString();
+    const quarter = Math.ceil((now.getMonth() + 1) / 3);
+    const month = now.toLocaleString('default', { month: 'long' }); // e.g., "January"
+    
     const paths = [
       req.body.userEmail, // user folder
       year,               // year folder
       `Q${quarter}`,      // quarter folder
+      month,              // month folder
       category,           // category folder
     ];
 
@@ -148,14 +153,21 @@ app.post('/upload', upload.single('file'), async (req, res) => {
       parentId = await getFolderId(folderName, parentId);
     }
 
-    // Upload to Google Drive
+    // Construct file name using user's name and card number
+    const email = req.body.userEmail || 'unknown';
+    const userName = email.split('@')[0];
+    const capitalizedName = userName.charAt(0).toUpperCase() + userName.slice(1);
+    const cardNumber = accountNumbers[userName.toLowerCase()] || '212';
+    const fileName = `${capitalizedName}-${cardNumber}-receipt-${Date.now()}.jpg`;
+
+    // Upload to Google Drive with the new file name and folder structure
     const { data } = await driveService.files.create({
       media: {
         mimeType: req.file.mimetype,
         body: bufferToStream(req.file.buffer), // USE RAW BUFFER AS STREAM
       },
       resource: {
-        name: req.file.originalname || `receipt-${Date.now()}`,
+        name: fileName,
         parents: [parentId],
       },
       fields: 'id, webViewLink',
