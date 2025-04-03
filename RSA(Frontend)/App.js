@@ -1,9 +1,11 @@
 // App.js - ReceiptSorterApp (React Native)
 
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet, ActivityIndicator } from 'react-native';
 import { AuthProvider, AuthContext } from './AuthContext';
 import CameraScreen from './CameraScreen';
+import NetInfo from '@react-native-community/netinfo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
   return (
@@ -20,53 +22,83 @@ function Main() {
 
   /**
    * processReceipt:
-   *  - Receives an image URI from CameraScreen
-   *  - Builds FormData with the file & user email
-   *  - Sends it to your backend BRS at /upload
-   *  - Updates state with the result (category, text, fileUrl, etc.)
+   *  - Checks network connectivity.
+   *  - If offline, queues the receipt submission in AsyncStorage.
+   *  - If online, creates a FormData object with the file, userEmail, and cardNumber,
+   *    then sends it to your backend at /upload.
+   *  - Updates state with the result (success/failure, category, etc.).
    */
   const processReceipt = async (imageUri) => {
     setProcessing(true);
     setOcrResult(null);
-
-    try {
-      // 1) Create FormData to match what your BRS backend expects
-      const formData = new FormData();
-
-      // Append the image as "file"
-      formData.append('file', {
-        uri: imageUri,
-        name: `receipt-${Date.now()}.jpg`,
-        type: 'image/jpeg', // adjust if you know the image is PNG, etc.
-      });
-
-      // Append userEmail — ensure you have a valid email or placeholder
-      formData.append('userEmail', user?.email || 'testuser@example.com');
-
-      // 2) Post to your deployed BRS backend /upload endpoint
-      const backendUrl = 'http://brsfinanceportal-env.eba-bueve3pm.us-east-1.elasticbeanstalk.com/upload';
-      const response = await fetch(backendUrl, {
-        method: 'POST',
-        // Do NOT manually set Content-Type here; fetch sets it automatically for FormData
-        body: formData,
-      });
-
-      // 3) Handle the response
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      // data should include: { success, fileId, fileUrl, category, text } (from your BRS backend)
-      setOcrResult(data);
+    try { 
+      /* Check network connectivity
+      const state = await NetInfo.fetch();
+      if (!state.isConnected) {
+         //Offline: store submission for later processing
+        const pendingSubmissions = JSON.parse(await AsyncStorage.getItem('pendingSubmissions')) || [];
+        pendingSubmissions.push({ imageUri, userEmail: user?.email || 'testuser@example.com' });
+        await AsyncStorage.setItem('pendingSubmissions', JSON.stringify(pendingSubmissions));
+        console.log('No network - receipt queued for later submission.');
+        setOcrResult({ success: true, category: 'Pending', text: 'Receipt queued for submission.' });
+      } else { 
+       */
+         //Online: Build FormData and send to backend
+        const formData = new FormData();
+        formData.append('file', {
+          uri: imageUri,
+          name: `receipt-${Date.now()}.jpg`,
+          type: 'image/jpeg',
+        });
+        
+        formData.append('userEmail', user?.email || 'testuser@example.com');
+        // Append cardNumber field (example card number: 212)
+        formData.append('cardNumber', '212');
+        const backendUrl = 'http://brsfinanceportal-env.eba-bueve3pm.us-east-1.elasticbeanstalk.com/upload';
+        const response = await fetch(backendUrl, {
+          method: 'POST',
+          body: formData,
+        });
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+        const data = await response.json();
+        setOcrResult(data);
+      
     } catch (error) {
       console.error('Error processing receipt:', error);
+      setOcrResult({ success: false, error: error.message, category: '' });
     } finally {
       setProcessing(false);
     }
   };
+/*
+  const processQueuedSubmissions = async () => {
+    try {
+      const pendingSubmissions = JSON.parse(await AsyncStorage.getItem('pendingSubmissions')) || [];
+      if (pendingSubmissions.length > 0) {
+        console.log(`Processing ${pendingSubmissions.length} queued submissions...`);
+        for (const submission of pendingSubmissions) {
+          await processReceipt(submission.imageUri);
+        }
+        await AsyncStorage.removeItem('pendingSubmissions');
+      }
+    } catch (error) {
+      console.error("Error processing queued submissions:", error);
+    }
+  };
+*/ /*
+  useEffect(() => {
+    const handleConnectivityChange = (state) => {
+      if (state.isConnected) {
+        processQueuedSubmissions();
+      }
+    };
 
-  // If user is not signed in, display Sign In screen
+    const unsubscribe = NetInfo.addEventListener(handleConnectivityChange);
+    return () => unsubscribe();
+  }, []);
+*/
   if (!user) {
     return (
       <View style={styles.container}>
@@ -76,10 +108,9 @@ function Main() {
     );
   }
 
-  // If user is signed in, display camera and result info
   return (
     <View style={{ flex: 1 }}>
-      {/* CameraScreen should call onReceiptCaptured(imageUri) once a photo is taken */}
+      {/* CameraScreen will call onReceiptCaptured(imageUri) once a photo is taken */}
       <CameraScreen onReceiptCaptured={processReceipt} />
 
       {/* Processing overlay */}
@@ -90,15 +121,25 @@ function Main() {
         </View>
       )}
 
-      {/* Display result if we have one */}
+      {/* Display result if available */}
       {ocrResult && (
-        <View style={styles.resultContainer}>
-          <Text style={styles.resultTitle}>Receipt Category: {ocrResult.category}</Text>
-          {/* The backend sets 'text' as a snippet of OCR text */}
-          <Text style={styles.resultDetails}>OCR Text: {ocrResult.text}</Text>
-          {/* The backend sets 'fileUrl' for the link to Google Drive */}
+        <View
+          style={[
+            styles.resultContainer,
+            ocrResult.success ? styles.successBox : styles.errorBox,
+          ]}
+        >
+          {ocrResult.success ? (
+            <Text style={styles.resultTitle}>Receipt submitted</Text>
+          ) : (
+            <Text style={styles.resultTitle}>Error: {ocrResult.error}</Text>
+          )}
+          <Text style={styles.resultDetails}>Category: {ocrResult.category}</Text>
           {ocrResult.fileUrl && (
             <Text style={styles.resultDetails}>File URL: {ocrResult.fileUrl}</Text>
+          )}
+          {ocrResult.text && (
+            <Text style={styles.resultDetails}>{ocrResult.text}</Text>
           )}
         </View>
       )}
@@ -137,5 +178,21 @@ const styles = StyleSheet.create({
   },
   resultDetails: {
     fontSize: 16,
+  },
+  successBox: {
+    backgroundColor: '#d4edda',
+    borderColor: '#28a745',
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 8,
+    margin: 10,
+  },
+  errorBox: {
+    backgroundColor: '#f8d7da',
+    borderColor: '#dc3545',
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 8,
+    margin: 10,
   },
 });
