@@ -1,4 +1,4 @@
-# ReceiptSorterApp 📸🧾  
+# BuildersReceiptSorter 📸🧾  
 A React Native mobile app to capture receipts, submit them to a backend for processing, and get categorized results in real-time. Works both online and offline (queueing submissions when offline).
 
 ---
