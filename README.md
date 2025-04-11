@@ -23,7 +23,7 @@ BRS (Receipt Sorter) is a full-stack application designed to automate the proces
 
 Backend (BRS)
 	1.	Clone the Repository:
- 
+
 ```
 git clone https://github.com/yourusername/brs.git
 cd brs
