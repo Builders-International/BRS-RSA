@@ -11,19 +11,10 @@ export default function CameraScreen({ onReceiptCaptured }) {
   if (!permission) {
     return <View />;
   }
-  // If permission is denied, show a message with a button to request again
+    // If permission is denied, request permission and show a loader
   if (!permission.granted) {
-    return (
-      <View style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>
-          We need your permission to use the camera.
-        </Text>
-        <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Grant Permission</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+    requestPermission();
+    return <View />;  }
 
   // When user taps the screen, take a photo and pass the photo URI to the parent's callback.
   const takePhoto = async () => {
