@@ -8,7 +8,7 @@
   [
     "expo-camera",
     {
-      "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+      "cameraPermission": "This app uses your camera to capture receipt images for expense tracking and automated categorization.",
       "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
       "recordAudioAndroid": true
     }
@@ -22,7 +22,7 @@
     "icon": "./assets/icon.png",
     "ios": {
       "bundleIdentifier": "com.egod21.ReceiptSorterApp",
-      "buildNumber": "2",
+      "buildNumber": "4",
       "icon": "./assets/icon.png",
       "newArchitecture": false,
       "infoPlist": {
