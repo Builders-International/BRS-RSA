@@ -1,0 +1,82 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Service Account Keys & Credentials (CRITICAL - DO NOT COMMIT)
+main_service_account.json
+drive_service_account.json
+*_service_account.json
+keybundle.zip
+*.p12
+*.mobileprovision
+
+# Expo/iOS Client Config Files
+IOSClient1.plist
+ExpoClient1.json
+
+# iOS Info.plist files (contain sensitive bundle info)
+RSA(Frontend)/ios/ReceiptSorterApp/Info.plist
+
+# iOS Pods and build artifacts (already covered but being explicit)
+RSA(Frontend)/ios/Pods/
+RSA(Frontend)/ios/build/
+RSA(Frontend)/node_modules/
+
+# Build artifacts
+ios/build/
+android/app/build/
+android/build/
+*.ipa
+*.apk
+*.aab
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Temporary folders
+tmp/
+temp/
+
+# Test files
+test-receipt.jpg
+test-*.jpg
+test-*.png
+test-*.pdf

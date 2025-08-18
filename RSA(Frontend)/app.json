@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "ReceiptSorterApp",
+    "slug": "ReceiptSorterApp",
+    "version": "1.0.8",
+    "scheme": "com.egod21.ReceiptSorterApp",
+"plugins": [
+  [
+    "expo-camera",
+    {
+      "cameraPermission": "This app uses your camera to capture receipt images for expense tracking and automated categorization.",
+      "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+      "recordAudioAndroid": true
+    }
+  ]
+]    ,"platforms": [
+      "ios",
+      "android"
+    ],
+    "newArchEnabled": false,
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "ios": {
+      "bundleIdentifier": "com.egod21.ReceiptSorterApp",
+      "buildNumber": "5",
+      "icon": "./assets/icon.png",
+      "newArchitecture": false,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "This app requires access to your microphone to record audio.",
+        "NSCameraUsageDescription": "This app requires access to your camera to capture receipt images.",
+        "CFBundleIconName": "AppIcon",
+        "CFBundleIcons": {
+          "CFBundlePrimaryIcon": {
+            "CFBundleIconFiles": [
+              "AppIcon"
+            ],
+            "UIPrerenderedIcon": false
+          }
+        }
+      }
+    },
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "98c7af04-24c9-491e-920e-9babb259cf40"
+      }
+    },
+    "android": {
+      "package": "com.egod21.ReceiptSorterApp"
+    }
+  }
+}
