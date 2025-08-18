@@ -22,7 +22,7 @@
     "icon": "./assets/icon.png",
     "ios": {
       "bundleIdentifier": "com.egod21.ReceiptSorterApp",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "icon": "./assets/icon.png",
       "newArchitecture": false,
       "infoPlist": {

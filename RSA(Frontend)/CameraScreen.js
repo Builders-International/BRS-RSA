@@ -40,7 +40,10 @@ export default function CameraScreen({ onReceiptCaptured }) {
         facing="back"
         onCameraReady={() => setIsCameraReady(true)}
         onTouchEnd={takePhoto} // Capture photo when tapping the screen
-      />
+      >
+        {/* Translucent alignment overlay for receipt positioning */}
+        <View style={styles.alignmentOverlay} />
+      </CameraView>
     </View>
   );
 }
@@ -69,5 +72,17 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+  },
+  alignmentOverlay: {
+    position: 'absolute',
+    top: '30%',
+    left: '15%',
+    right: '15%',
+    height: 200,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: 8,
+    borderStyle: 'dashed',
+    backgroundColor: 'transparent',
   },
 });
